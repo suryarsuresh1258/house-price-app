@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>House Price Prediction</title>
+    <title>Zillow House Price Prediction</title>
 
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
@@ -13,7 +13,6 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
         }
 
         .container {
@@ -22,37 +21,18 @@
             border-radius: 12px;
             width: 400px;
             text-align: center;
-            box-shadow: 0px 5px 15px rgba(0,0,0,0.2);
         }
 
         input, button {
             width: 90%;
             padding: 10px;
-            margin: 8px 0;
-            border-radius: 6px;
-            border: 1px solid #ccc;
+            margin: 8px;
         }
 
         button {
             background: #667eea;
             color: white;
             border: none;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #5a67d8;
-        }
-
-        h2 {
-            margin-bottom: 10px;
-        }
-
-        a {
-            display: block;
-            margin-top: 10px;
-            color: #667eea;
-            text-decoration: none;
         }
     </style>
 </head>
@@ -60,15 +40,15 @@
 <body>
 
 <div class="container">
-    <h2>🏡 House Price Prediction</h2>
+    <h2>🏡 Zillow House Price Prediction</h2>
 
     <form action="/predict" method="POST">
 
-        <input type="number" step="any" name="calculatedfinishedsquarefeet" placeholder="Area" required>
-        <input type="number" step="any" name="bedroomcnt" placeholder="Bedrooms" required>
-        <input type="number" step="any" name="bathroomcnt" placeholder="Bathrooms" required>
-        <input type="number" step="any" name="garagecarcnt" placeholder="Garage Cars" required>
-        <input type="number" step="any" name="yearbuilt" placeholder="Year Built" required>
+        <input type="number" name="calculatedfinishedsquarefeet" placeholder="Area" required>
+        <input type="number" name="bedroomcnt" placeholder="Bedrooms" required>
+        <input type="number" name="bathroomcnt" placeholder="Bathrooms" required>
+        <input type="number" name="garagecarcnt" placeholder="Garage" required>
+        <input type="number" name="yearbuilt" placeholder="Year Built" required>
 
         <button type="submit">Predict</button>
     </form>
@@ -82,9 +62,7 @@
     {% endif %}
 
     {% if plot_html %}
-        <div>
-            {{ plot_html | safe }}
-        </div>
+        {{ plot_html | safe }}
     {% endif %}
 
     <a href="/dashboard">📊 Go to Dashboard</a>
