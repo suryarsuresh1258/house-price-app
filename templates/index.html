@@ -2,71 +2,37 @@
 <html>
 <head>
     <title>Zillow House Price Prediction</title>
-
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
-    <style>
-        body {
-            font-family: Arial;
-            background: linear-gradient(to right, #667eea, #764ba2);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            width: 400px;
-            text-align: center;
-        }
-
-        input, button {
-            width: 90%;
-            padding: 10px;
-            margin: 8px;
-        }
-
-        button {
-            background: #667eea;
-            color: white;
-            border: none;
-        }
-    </style>
 </head>
 
 <body>
 
-<div class="container">
-    <h2>🏡 Zillow House Price Prediction</h2>
+<h2>🏡Zillow House Price Prediction</h2>
 
-    <form action="/predict" method="POST">
+<form action="/predict" method="POST">
 
-        <input type="number" name="calculatedfinishedsquarefeet" placeholder="Area" required>
-        <input type="number" name="bedroomcnt" placeholder="Bedrooms" required>
-        <input type="number" name="bathroomcnt" placeholder="Bathrooms" required>
-        <input type="number" name="garagecarcnt" placeholder="Garage" required>
-        <input type="number" name="yearbuilt" placeholder="Year Built" required>
+    <input type="number" name="calculatedfinishedsquarefeet" placeholder="Area" required>
+    <input type="number" name="bedroomcnt" placeholder="Bedrooms" required>
+    <input type="number" name="bathroomcnt" placeholder="Bathrooms" required>
+    <input type="number" name="garagecarcnt" placeholder="Garage" required>
+    <input type="number" name="yearbuilt" placeholder="Year Built" required>
 
-        <button type="submit">Predict</button>
-    </form>
+    <button type="submit">Predict</button>
+</form>
 
-    {% if prediction_text %}
-        <h3>{{ prediction_text }}</h3>
-    {% endif %}
+{% if prediction_text %}
+    <h3>{{ prediction_text }}</h3>
+{% endif %}
 
-    {% if confidence_text %}
-        <p>{{ confidence_text }}</p>
-    {% endif %}
+{% if confidence_text %}
+    <p>{{ confidence_text }}</p>
+{% endif %}
 
-    {% if plot_html %}
-        {{ plot_html | safe }}
-    {% endif %}
+{% if plot_url %}
+    <img src="data:image/png;base64,{{ plot_url }}" width="500">
+{% endif %}
 
-    <a href="/dashboard">📊 Go to Dashboard</a>
-</div>
+<br><br>
+<a href="/dashboard">Go to Dashboard</a>
 
 </body>
 </html>
