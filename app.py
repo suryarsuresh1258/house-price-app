@@ -1,8 +1,11 @@
 from flask import Flask, render_template, request
 import pandas as pd
 import joblib
-import plotly.express as px
-import random
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import io
+import base64
 
 app = Flask(__name__)
 
@@ -10,7 +13,7 @@ app = Flask(__name__)
 model = joblib.load("house_price_stacking_model.pk1")
 rf_model = joblib.load("house_price_rf_model.pk1")
 
-print("✅ Models Loaded")
+print("MODEL LOADED")
 
 
 # ---------------- HOME ----------------
@@ -23,14 +26,22 @@ def home():
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        input_data = {
-            'calculatedfinishedsquarefeet': float(request.form.get('calculatedfinishedsquarefeet', 0)),
-            'bedroomcnt': float(request.form.get('bedroomcnt', 0)),
-            'bathroomcnt': float(request.form.get('bathroomcnt', 0)),
-            'yearbuilt': float(request.form.get('yearbuilt', 0)),
-            'garagecarcnt': float(request.form.get('garagecarcnt', 0)),
+        # User inputs
+        area = float(request.form.get('calculatedfinishedsquarefeet', 0))
+        bedrooms = float(request.form.get('bedroomcnt', 0))
+        bathrooms = float(request.form.get('bathroomcnt', 0))
+        garage = float(request.form.get('garagecarcnt', 0))
+        yearbuilt = float(request.form.get('yearbuilt', 0))
 
-            # Keep your original features
+        # Full feature set
+        data = {
+            'calculatedfinishedsquarefeet': area,
+            'bedroomcnt': bedrooms,
+            'bathroomcnt': bathrooms,
+            'yearbuilt': yearbuilt,
+            'garagecarcnt': garage,
+
+            # Default values
             'garagetotalsqft': 400,
             'latitude': 34.05,
             'longitude': -118.25,
@@ -42,9 +53,9 @@ def predict():
             'month': 6
         }
 
-        input_df = pd.DataFrame([input_data])
+        input_df = pd.DataFrame([data])
 
-        # Ensure feature order (VERY IMPORTANT)
+        # Feature order (IMPORTANT)
         input_df = input_df[[
             'calculatedfinishedsquarefeet',
             'bedroomcnt',
@@ -66,29 +77,26 @@ def predict():
         prediction = model.predict(input_df)[0]
         prediction = abs(prediction)
 
-        confidence_text = f"Estimated Price: ${round(prediction*0.9,2)} - ${round(prediction*1.1,2)}"
+        confidence_text = f"Estimated Range: ${round(prediction*0.9,2)} - ${round(prediction*1.1,2)}"
 
-        # ---------------- FEATURE IMPORTANCE ----------------
-        importance_df = pd.DataFrame({
-            "Feature": input_df.columns,
-            "Importance": rf_model.feature_importances_
-        })
+        # Feature Importance Plot
+        img = io.BytesIO()
 
-        fig = px.bar(
-            importance_df,
-            x="Importance",
-            y="Feature",
-            orientation='h',
-            title="Feature Importance"
-        )
+        plt.figure()
+        plt.barh(input_df.columns, rf_model.feature_importances_)
+        plt.title("Feature Importance")
+        plt.tight_layout()
 
-        feature_plot = fig.to_html(full_html=False)
+        plt.savefig(img, format='png')
+        img.seek(0)
+        plot_url = base64.b64encode(img.getvalue()).decode()
+        plt.close()
 
         return render_template(
             "index.html",
             prediction_text=f"Predicted Price: ${round(prediction,2)}",
             confidence_text=confidence_text,
-            plot_html=feature_plot
+            plot_url=plot_url
         )
 
     except Exception as e:
@@ -98,31 +106,66 @@ def predict():
 # ---------------- DASHBOARD ----------------
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
-    bedrooms = 5
+    try:
+        bedrooms = 5
 
-    if request.method == 'POST':
-        bedrooms = int(request.form.get('bedrooms', 5))
+        if request.method == 'POST':
+            bedrooms = int(request.form.get('bedrooms', 5))
 
-    # Synthetic dataset for visualization
-    data = pd.DataFrame({
-        "bedrooms": list(range(1, bedrooms + 1)),
-        "bathrooms": list(range(1, bedrooms + 1)),
-        "area": [i * 500 for i in range(1, bedrooms + 1)],
-        "price": [i * random.randint(90000, 140000) for i in range(1, bedrooms + 1)]
-    })
+        # Sample data
+        data = pd.DataFrame({
+            "bedrooms": list(range(1, bedrooms + 1)),
+            "bathrooms": list(range(1, bedrooms + 1)),
+            "area": [i * 500 for i in range(1, bedrooms + 1)],
+            "price": [i * 100000 for i in range(1, bedrooms + 1)]
+        })
 
-    # Charts
-    fig1 = px.bar(data, x="bedrooms", y="price", title="Bedrooms vs Price")
-    fig2 = px.scatter(data, x="area", y="price", title="Area vs Price")
-    fig3 = px.scatter(data, x="bathrooms", y="price", title="Bathrooms vs Price")
+        # -------- Bedrooms vs Price --------
+        img1 = io.BytesIO()
+        plt.figure()
+        plt.bar(data["bedrooms"], data["price"])
+        plt.xlabel("Bedrooms")
+        plt.ylabel("Price")
+        plt.title("Bedrooms vs Price")
+        plt.savefig(img1, format='png')
+        img1.seek(0)
+        bar = base64.b64encode(img1.getvalue()).decode()
+        plt.close()
 
-    return render_template(
-        "dashboard.html",
-        bar=fig1.to_html(full_html=False),
-        scatter=fig2.to_html(full_html=False),
-        scatter2=fig3.to_html(full_html=False),
-        bedrooms=bedrooms
-    )
+        # -------- Area vs Price --------
+        img2 = io.BytesIO()
+        plt.figure()
+        plt.scatter(data["area"], data["price"])
+        plt.xlabel("Area")
+        plt.ylabel("Price")
+        plt.title("Area vs Price")
+        plt.savefig(img2, format='png')
+        img2.seek(0)
+        scatter = base64.b64encode(img2.getvalue()).decode()
+        plt.close()
+
+        # -------- Bathrooms vs Price --------
+        img3 = io.BytesIO()
+        plt.figure()
+        plt.scatter(data["bathrooms"], data["price"])
+        plt.xlabel("Bathrooms")
+        plt.ylabel("Price")
+        plt.title("Bathrooms vs Price")
+        plt.savefig(img3, format='png')
+        img3.seek(0)
+        scatter2 = base64.b64encode(img3.getvalue()).decode()
+        plt.close()
+
+        return render_template(
+            "dashboard.html",
+            bar=bar,
+            scatter=scatter,
+            scatter2=scatter2,
+            bedrooms=bedrooms
+        )
+
+    except Exception as e:
+        return f"Dashboard Error: {str(e)}"
 
 
 # ---------------- RUN ----------------
