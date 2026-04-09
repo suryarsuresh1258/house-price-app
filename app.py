@@ -124,7 +124,6 @@ def dashboard():
         x="area",
         y="price",
         title="Area vs Price",
-        trendline="ols",
         color="price"
     )
 
