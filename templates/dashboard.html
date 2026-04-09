@@ -1,111 +1,84 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Dashboard</title>
+    <title>Dashboard</title>
 
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(to right, #141e30, #243b55);
+            background: #0f172a;
             color: white;
+            font-family: Arial;
             text-align: center;
-        }
-
-        .container {
-            padding: 20px;
+            margin: 0;
         }
 
         .card {
-            background: #1f2a38;
-            padding: 20px;
+            background: #1e293b;
             margin: 20px auto;
-            border-radius: 12px;
+            padding: 20px;
             width: 90%;
-            max-width: 800px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            border-radius: 12px;
         }
 
         input, button {
             padding: 10px;
             margin: 10px;
-            border-radius: 6px;
-            border: none;
         }
 
         button {
-            background: #4facfe;
+            background: #38bdf8;
+            border: none;
             color: white;
             cursor: pointer;
         }
 
         button:hover {
-            background: #00c6ff;
+            background: #0ea5e9;
+        }
+
+        a {
+            color: #38bdf8;
+            text-decoration: none;
         }
     </style>
 </head>
 
 <body>
 
-<div class="container">
-    <h1>📊 Advanced Dashboard</h1>
+<h1>📊 Property Dashboard</h1>
 
-    <div class="card">
-        <form method="POST">
-            <input type="number" name="bedrooms" placeholder="Bedrooms" value="{{ bedrooms }}">
-            <button type="submit">Generate</button>
-        </form>
-    </div>
+<form method="POST">
+    <input type="number" name="bedrooms" value="{{ bedrooms }}">
+    <button type="submit">Update</button>
+</form>
 
-    <!-- Graph 1 -->
-    <div class="card">
-        <h3>Bedrooms vs Price</h3>
-        <div id="graph1"></div>
-    </div>
+<div class="card">
+    <h3>Bedrooms vs Price</h3>
+    <div id="bar"></div>
+</div>
 
-    <!-- Graph 2 -->
-    <div class="card">
-        <h3>Price Distribution</h3>
-        <div id="graph2"></div>
-    </div>
+<div class="card">
+    <h3>Price Trend</h3>
+    <div id="scatter"></div>
+</div>
 
-    <!-- Graph 3 -->
-    <div class="card">
-        <h3>Scatter Plot (Bedrooms vs Price)</h3>
-        <div id="graph3"></div>
-    </div>
-
-    <a href="/" style="color:#4facfe;">⬅ Back</a>
+<div class="card">
+    <h3>Price Distribution</h3>
+    <div id="hist"></div>
 </div>
 
 <script>
-    // Data from Flask
     var data = {{ graph_data | safe }};
 
-    // Graph 1 - Bar Chart
-    Plotly.newPlot('graph1', [{
-        x: data.bedrooms,
-        y: data.prices,
-        type: 'bar'
-    }]);
-
-    // Graph 2 - Histogram
-    Plotly.newPlot('graph2', [{
-        x: data.prices,
-        type: 'histogram'
-    }]);
-
-    // Graph 3 - Scatter
-    Plotly.newPlot('graph3', [{
-        x: data.bedrooms,
-        y: data.prices,
-        mode: 'markers',
-        type: 'scatter'
-    }]);
+    Plotly.newPlot('bar', [data.bar]);
+    Plotly.newPlot('scatter', [data.scatter]);
+    Plotly.newPlot('hist', [data.hist]);
 </script>
+
+<br>
+<a href="/">⬅ Back to Home</a>
 
 </body>
 </html>
