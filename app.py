@@ -1,47 +1,38 @@
 from flask import Flask, render_template, request
 import pandas as pd
 import joblib
-import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import os
-import io
-import base64
+import plotly.express as px
+import plotly.graph_objs as go
+import random
 
 app = Flask(__name__)
 
-# Load model
-model = joblib.load("house_price_stacking_model.pk1")
-rf_model = joblib.load("house_price_rf_model.pk1")
-print("MODEL LOADED")
+# Load trained models
+model = joblib.load("house_price_stacking_model.pkl")
+rf_model = joblib.load("house_price_rf_model.pkl")
 
-# Home page
+print("✅ Models loaded successfully")
+
+
+# ---------------- HOME PAGE ----------------
 @app.route('/')
 def home():
-    print("Home page loaded")
     return render_template("index.html")
 
-# Prediction route
+
+# ---------------- PREDICTION ----------------
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # Get user inputs
-        area = float(request.form.get('calculatedfinishedsquarefeet',0))
-        bedrooms = float(request.form.get('bedroomcnt',0))
-        bathrooms = float(request.form.get('bathroomcnt',0))
-        garage = float(request.form.get('garagecarcnt',0))
-        yearbuilt = float(request.form.get('yearbuilt',0))
+        # Collect input data from form
+        input_data = {
+            'calculatedfinishedsquarefeet': float(request.form.get('calculatedfinishedsquarefeet', 0)),
+            'bedroomcnt': float(request.form.get('bedroomcnt', 0)),
+            'bathroomcnt': float(request.form.get('bathroomcnt', 0)),
+            'yearbuilt': float(request.form.get('yearbuilt', 0)),
+            'garagecarcnt': float(request.form.get('garagecarcnt', 0)),
 
-        # Prepare FULL feature set (same as training)
-        data = {
-            'calculatedfinishedsquarefeet': area,
-            'bedroomcnt': bedrooms,
-            'bathroomcnt': bathrooms,
-            'yearbuilt': yearbuilt,
-            'garagecarcnt': garage,
-
-            # Default values (IMPORTANT)
+            # Keep your remaining features (important)
             'garagetotalsqft': 400,
             'latitude': 34.05,
             'longitude': -118.25,
@@ -54,9 +45,9 @@ def predict():
         }
 
         # Convert to DataFrame
-        input_df = pd.DataFrame([data])
+        input_df = pd.DataFrame([input_data])
 
-        # Ensure SAME ORDER as training
+        # 🔥 IMPORTANT: Keep exact feature order
         input_df = input_df[[
             'calculatedfinishedsquarefeet',
             'bedroomcnt',
@@ -74,46 +65,45 @@ def predict():
             'month'
         ]]
 
-        # Predict
+        # Prediction
         prediction = model.predict(input_df)[0]
 
-        # Safety fix (avoid negative values)
         if prediction < 0:
             prediction = abs(prediction)
+
         lower = prediction * 0.9
         upper = prediction * 1.1
+
         confidence_text = f"Estimated Range: ${round(lower,2)} - ${round(upper,2)}"
 
-        # Feature importance plot
-        plot_url = None
-        try:
-            importances = rf_model.feature_importances_
-            features = input_df.columns
+        # ---------------- FEATURE IMPORTANCE ----------------
+        importance_df = pd.DataFrame({
+            "Feature": input_df.columns,
+            "Importance": rf_model.feature_importances_
+        })
 
-            plt.figure()
-            plt.barh(features, importances)
-            plt.title("Feature Importance")
-            plt.tight_layout()
+        fig = px.bar(
+            importance_df,
+            x="Importance",
+            y="Feature",
+            orientation='h',
+            title="Feature Importance"
+        )
 
-            plot_path = os.path.join("static", "feature_importance.png")
-            plt.savefig(plot_path)
-            plt.close()
-
-            plot_url = "feature_importance.png"
-
-        except Exception as e:
-            print("Plot error:", e)
+        plot_html = fig.to_html(full_html=False)
 
         return render_template(
             "index.html",
-            prediction_text=f"Predicted House Price: ${round(prediction,2)}",
+            prediction_text=f"Predicted Price: ${round(prediction,2)}",
             confidence_text=confidence_text,
-            plot_url=plot_url
+            plot_html=plot_html
         )
 
     except Exception as e:
         return render_template("index.html", prediction_text=f"Error: {str(e)}")
 
+
+# ---------------- DASHBOARD ----------------
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     bedrooms = 5
@@ -121,15 +111,28 @@ def dashboard():
     if request.method == 'POST':
         bedrooms = int(request.form.get('bedrooms', 5))
 
-    # Sample data
-    import random
-
+    # Simulated data for visualization
     bedroom_list = list(range(1, bedrooms + 1))
-    price_list = [i * random.randint(80000, 150000) for i in bedroom_list]
+    price_list = [i * random.randint(90000, 140000) for i in bedroom_list]
+
+    # Bar Chart
+    bar = go.Bar(x=bedroom_list, y=price_list, name="Bedrooms vs Price")
+
+    # Scatter / Trend
+    scatter = go.Scatter(
+        x=bedroom_list,
+        y=price_list,
+        mode='lines+markers',
+        name="Trend"
+    )
+
+    # Histogram
+    hist = go.Histogram(x=price_list, name="Price Distribution")
 
     graph_data = {
-        "bedrooms": bedroom_list,
-        "prices": price_list
+        "bar": bar,
+        "scatter": scatter,
+        "hist": hist
     }
 
     return render_template(
@@ -139,5 +142,6 @@ def dashboard():
     )
 
 
+# ---------------- RUN APP ----------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
