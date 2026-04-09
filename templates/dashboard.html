@@ -3,15 +3,11 @@
 <head>
     <title>Dashboard</title>
 
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
     <style>
         body {
             background: #0f172a;
             color: white;
-            font-family: Arial;
             text-align: center;
-            margin: 0;
         }
 
         .card {
@@ -31,16 +27,6 @@
             background: #38bdf8;
             border: none;
             color: white;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #0ea5e9;
-        }
-
-        a {
-            color: #38bdf8;
-            text-decoration: none;
         }
     </style>
 </head>
@@ -56,29 +42,20 @@
 
 <div class="card">
     <h3>Bedrooms vs Price</h3>
-    <div id="bar"></div>
+    {{ bar | safe }}
 </div>
 
 <div class="card">
-    <h3>Price Trend</h3>
-    <div id="scatter"></div>
+    <h3>Area vs Price</h3>
+    {{ scatter | safe }}
 </div>
 
 <div class="card">
-    <h3>Price Distribution</h3>
-    <div id="hist"></div>
+    <h3>Bathrooms vs Price</h3>
+    {{ scatter2 | safe }}
 </div>
 
-<script>
-    var data = {{ graph_data | safe }};
-
-    Plotly.newPlot('bar', [data.bar]);
-    Plotly.newPlot('scatter', [data.scatter]);
-    Plotly.newPlot('hist', [data.hist]);
-</script>
-
-<br>
-<a href="/">⬅ Back to Home</a>
+<a href="/">⬅ Back</a>
 
 </body>
 </html>
