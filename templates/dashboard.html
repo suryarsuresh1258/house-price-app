@@ -3,90 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Advanced Dashboard</title>
+
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: linear-gradient(to right, #667eea, #764ba2);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-
-        .container {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            width: 400px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            background: linear-gradient(to right, #141e30, #243b55);
+            color: white;
             text-align: center;
         }
 
-        h2 {
-            margin-bottom: 15px;
-            color: #333;
+        .container {
+            padding: 20px;
         }
 
-        input {
+        .card {
+            background: #1f2a38;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 12px;
             width: 90%;
+            max-width: 800px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        input, button {
             padding: 10px;
-            margin: 10px 0;
+            margin: 10px;
             border-radius: 6px;
-            border: 1px solid #ccc;
+            border: none;
         }
 
         button {
-            width: 95%;
-            padding: 12px;
-            background: #667eea;
-            border: none;
+            background: #4facfe;
             color: white;
-            border-radius: 6px;
             cursor: pointer;
-            font-size: 16px;
         }
 
         button:hover {
-            background: #5a67d8;
-        }
-
-        img {
-            margin-top: 20px;
-            width: 100%;
-            border-radius: 8px;
-        }
-
-        .back {
-            display: block;
-            margin-top: 15px;
-            color: #667eea;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .back:hover {
-            text-decoration: underline;
+            background: #00c6ff;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h2>📊 Dashboard</h2>
 
+<div class="container">
+    <h1>📊 Advanced Dashboard</h1>
+
+    <div class="card">
         <form method="POST">
-            <input type="number" name="bedrooms" placeholder="Enter number of bedrooms" value="{{ bedrooms }}" required>
-            <button type="submit">Generate Graph</button>
+            <input type="number" name="bedrooms" placeholder="Bedrooms" value="{{ bedrooms }}">
+            <button type="submit">Generate</button>
         </form>
-
-        {% if graph_url %}
-        <img src="data:image/png;base64,{{ graph_url }}" alt="Graph">
-        {% endif %}
-
-        <a href="/" class="back">⬅ Back to Home</a>
     </div>
+
+    <!-- Graph 1 -->
+    <div class="card">
+        <h3>Bedrooms vs Price</h3>
+        <div id="graph1"></div>
+    </div>
+
+    <!-- Graph 2 -->
+    <div class="card">
+        <h3>Price Distribution</h3>
+        <div id="graph2"></div>
+    </div>
+
+    <!-- Graph 3 -->
+    <div class="card">
+        <h3>Scatter Plot (Bedrooms vs Price)</h3>
+        <div id="graph3"></div>
+    </div>
+
+    <a href="/" style="color:#4facfe;">⬅ Back</a>
+</div>
+
+<script>
+    // Data from Flask
+    var data = {{ graph_data | safe }};
+
+    // Graph 1 - Bar Chart
+    Plotly.newPlot('graph1', [{
+        x: data.bedrooms,
+        y: data.prices,
+        type: 'bar'
+    }]);
+
+    // Graph 2 - Histogram
+    Plotly.newPlot('graph2', [{
+        x: data.prices,
+        type: 'histogram'
+    }]);
+
+    // Graph 3 - Scatter
+    Plotly.newPlot('graph3', [{
+        x: data.bedrooms,
+        y: data.prices,
+        mode: 'markers',
+        type: 'scatter'
+    }]);
+</script>
+
 </body>
 </html>
