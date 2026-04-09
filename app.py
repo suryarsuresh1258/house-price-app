@@ -8,8 +8,8 @@ import random
 app = Flask(__name__)
 
 # Load trained models
-model = joblib.load("house_price_stacking_model.pkl")
-rf_model = joblib.load("house_price_rf_model.pkl")
+model = joblib.load("house_price_stacking_model.pk1")
+rf_model = joblib.load("house_price_rf_model.pk1")
 
 print("✅ Models loaded successfully")
 
