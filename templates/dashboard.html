@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            width: 400px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            width: 95%;
+            padding: 12px;
+            background: #667eea;
+            border: none;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #5a67d8;
+        }
+
+        img {
+            margin-top: 20px;
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        .back {
+            display: block;
+            margin-top: 15px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>📊 Dashboard</h2>
+
+        <form method="POST">
+            <input type="number" name="bedrooms" placeholder="Enter number of bedrooms" value="{{ bedrooms }}" required>
+            <button type="submit">Generate Graph</button>
+        </form>
+
+        {% if graph_url %}
+        <img src="data:image/png;base64,{{ graph_url }}" alt="Graph">
+        {% endif %}
+
+        <a href="/" class="back">⬅ Back to Home</a>
+    </div>
+</body>
+</html>
