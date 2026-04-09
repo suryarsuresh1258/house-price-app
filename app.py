@@ -6,8 +6,8 @@ import plotly.express as px
 app = Flask(__name__)
 
 # Load models
-model = joblib.load("house_price_stacking_model.pk1")
-rf_model = joblib.load("house_price_rf_model.pk1")
+model = joblib.load("house_price_stacking_model.pkl")
+rf_model = joblib.load("house_price_rf_model.pkl")
 
 print("MODEL LOADED")
 
