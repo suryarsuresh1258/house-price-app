@@ -6,6 +6,8 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
+import io
+import base64
 
 app = Flask(__name__)
 
@@ -82,33 +84,64 @@ def predict():
         upper = prediction * 1.1
         confidence_text = f"Estimated Range: ${round(lower,2)} - ${round(upper,2)}"
 
-        plot_path = "static/feature_importance.png"
-        plot_url = "feature_importance.png"
-
+        # Feature importance plot
+        plot_url = None
         try:
             importances = rf_model.feature_importances_
             features = input_df.columns
+
             plt.figure()
-            plt.barh(features,importances)
+            plt.barh(features, importances)
             plt.title("Feature Importance")
             plt.tight_layout()
+
+            plot_path = os.path.join("static", "feature_importance.png")
             plt.savefig(plot_path)
             plt.close()
-        except:
-            plot_path = None  # rf model not available
 
-        return render_template("index.html",
-                               prediction_text=f"Predicted House Price: ${round(prediction,2)}",
-                               confidence_text=confidence_text,
-                               plot_url=plot_url)
+            plot_url = "feature_importance.png"
+
+        except Exception as e:
+            print("Plot error:", e)
+
+        return render_template(
+            "index.html",
+            prediction_text=f"Predicted House Price: ${round(prediction,2)}",
+            confidence_text=confidence_text,
+            plot_url=plot_url
+        )
 
     except Exception as e:
-        return render_template("index.html",
-                               prediction_text=f"Error: {str(e)}")
+        return render_template("index.html", prediction_text=f"Error: {str(e)}")
+
+
+@app.route('/dashboard', methods=['GET', 'POST'])
+def dashboard():
+    bedrooms = 5
+
+    if request.method == 'POST':
+        bedrooms = int(request.form.get('bedrooms', 5))
+
+    df = pd.DataFrame({
+        'Bedrooms': list(range(1, bedrooms+1)),
+        'Price': [i * 100000 for i in range(1, bedrooms+1)]
+    })
+
+    plt.figure()
+    plt.bar(df['Bedrooms'], df['Price'])
+    plt.xlabel('Bedrooms')
+    plt.ylabel('Price')
+    plt.title('Price vs Bedrooms')
+
+    img = io.BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+
+    graph_url = base64.b64encode(img.getvalue()).decode()
+    plt.close()
+
+    return render_template("dashboard.html", graph_url=graph_url, bedrooms=bedrooms)
 
 
 if __name__ == "__main__":
-    import os
-    host = os.environ.get("FLASK_RUN_HOST", "0.0.0.0")
-    port = int(os.environ.get("FLASK_RUN_PORT", 5000))
-    app.run(host = host,port=port,debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
