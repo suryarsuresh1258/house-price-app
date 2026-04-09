@@ -2,29 +2,27 @@ from flask import Flask, render_template, request
 import pandas as pd
 import joblib
 import plotly.express as px
-import plotly.graph_objs as go
 import random
 
 app = Flask(__name__)
 
-# Load trained models
+# Load models
 model = joblib.load("house_price_stacking_model.pk1")
 rf_model = joblib.load("house_price_rf_model.pk1")
 
-print("✅ Models loaded successfully")
+print("✅ Models Loaded")
 
 
-# ---------------- HOME PAGE ----------------
+# ---------------- HOME ----------------
 @app.route('/')
 def home():
     return render_template("index.html")
 
 
-# ---------------- PREDICTION ----------------
+# ---------------- PREDICT ----------------
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # Collect input data from form
         input_data = {
             'calculatedfinishedsquarefeet': float(request.form.get('calculatedfinishedsquarefeet', 0)),
             'bedroomcnt': float(request.form.get('bedroomcnt', 0)),
@@ -32,7 +30,7 @@ def predict():
             'yearbuilt': float(request.form.get('yearbuilt', 0)),
             'garagecarcnt': float(request.form.get('garagecarcnt', 0)),
 
-            # Keep your remaining features (important)
+            # Keep your original features
             'garagetotalsqft': 400,
             'latitude': 34.05,
             'longitude': -118.25,
@@ -44,10 +42,9 @@ def predict():
             'month': 6
         }
 
-        # Convert to DataFrame
         input_df = pd.DataFrame([input_data])
 
-        # 🔥 IMPORTANT: Keep exact feature order
+        # Ensure feature order (VERY IMPORTANT)
         input_df = input_df[[
             'calculatedfinishedsquarefeet',
             'bedroomcnt',
@@ -67,14 +64,9 @@ def predict():
 
         # Prediction
         prediction = model.predict(input_df)[0]
+        prediction = abs(prediction)
 
-        if prediction < 0:
-            prediction = abs(prediction)
-
-        lower = prediction * 0.9
-        upper = prediction * 1.1
-
-        confidence_text = f"Estimated Range: ${round(lower,2)} - ${round(upper,2)}"
+        confidence_text = f"Estimated Price: ${round(prediction*0.9,2)} - ${round(prediction*1.1,2)}"
 
         # ---------------- FEATURE IMPORTANCE ----------------
         importance_df = pd.DataFrame({
@@ -90,13 +82,13 @@ def predict():
             title="Feature Importance"
         )
 
-        plot_html = fig.to_html(full_html=False)
+        feature_plot = fig.to_html(full_html=False)
 
         return render_template(
             "index.html",
             prediction_text=f"Predicted Price: ${round(prediction,2)}",
             confidence_text=confidence_text,
-            plot_html=plot_html
+            plot_html=feature_plot
         )
 
     except Exception as e:
@@ -111,37 +103,28 @@ def dashboard():
     if request.method == 'POST':
         bedrooms = int(request.form.get('bedrooms', 5))
 
-    # Simulated data for visualization
-    bedroom_list = list(range(1, bedrooms + 1))
-    price_list = [i * random.randint(90000, 140000) for i in bedroom_list]
+    # Synthetic dataset for visualization
+    data = pd.DataFrame({
+        "bedrooms": list(range(1, bedrooms + 1)),
+        "bathrooms": list(range(1, bedrooms + 1)),
+        "area": [i * 500 for i in range(1, bedrooms + 1)],
+        "price": [i * random.randint(90000, 140000) for i in range(1, bedrooms + 1)]
+    })
 
-    # Bar Chart
-    bar = go.Bar(x=bedroom_list, y=price_list, name="Bedrooms vs Price")
-
-    # Scatter / Trend
-    scatter = go.Scatter(
-        x=bedroom_list,
-        y=price_list,
-        mode='lines+markers',
-        name="Trend"
-    )
-
-    # Histogram
-    hist = go.Histogram(x=price_list, name="Price Distribution")
-
-    graph_data = {
-        "bar": bar,
-        "scatter": scatter,
-        "hist": hist
-    }
+    # Charts
+    fig1 = px.bar(data, x="bedrooms", y="price", title="Bedrooms vs Price")
+    fig2 = px.scatter(data, x="area", y="price", title="Area vs Price", trendline="ols")
+    fig3 = px.scatter(data, x="bathrooms", y="price", title="Bathrooms vs Price")
 
     return render_template(
         "dashboard.html",
-        graph_data=graph_data,
+        bar=fig1.to_html(full_html=False),
+        scatter=fig2.to_html(full_html=False),
+        scatter2=fig3.to_html(full_html=False),
         bedrooms=bedrooms
     )
 
 
-# ---------------- RUN APP ----------------
+# ---------------- RUN ----------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
