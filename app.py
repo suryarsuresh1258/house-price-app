@@ -113,7 +113,7 @@ def dashboard():
 
     # Charts
     fig1 = px.bar(data, x="bedrooms", y="price", title="Bedrooms vs Price")
-    fig2 = px.scatter(data, x="area", y="price", title="Area vs Price", trendline="ols")
+    fig2 = px.scatter(data, x="area", y="price", title="Area vs Price")
     fig3 = px.scatter(data, x="bathrooms", y="price", title="Bathrooms vs Price")
 
     return render_template(
