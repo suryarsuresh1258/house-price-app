@@ -114,7 +114,6 @@ def predict():
     except Exception as e:
         return render_template("index.html", prediction_text=f"Error: {str(e)}")
 
-
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     bedrooms = 5
