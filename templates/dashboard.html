@@ -2,28 +2,60 @@
 <html>
 <head>
     <title>Dashboard</title>
+
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <style>
+        body {
+            background: #0f172a;
+            color: white;
+            text-align: center;
+            font-family: Arial;
+        }
+
+        .card {
+            background: #1e293b;
+            margin: 20px;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        input, button {
+            padding: 10px;
+            margin: 10px;
+        }
+
+        button {
+            background: #38bdf8;
+            border: none;
+            color: white;
+        }
+    </style>
 </head>
 
 <body>
 
-<h1>📊 Dashboard</h1>
+<h1>📊 Interactive Dashboard</h1>
 
 <form method="POST">
     <input type="number" name="bedrooms" value="{{ bedrooms }}">
     <button type="submit">Update</button>
 </form>
 
-<h3>Bedrooms vs Price</h3>
-<img src="data:image/png;base64,{{ bar }}" width="600">
+<div class="card">
+    {{ bar | safe }}
+</div>
 
-<h3>Area vs Price</h3>
-<img src="data:image/png;base64,{{ scatter }}" width="600">
+<div class="card">
+    {{ scatter | safe }}
+</div>
 
-<h3>Bathrooms vs Price</h3>
-<img src="data:image/png;base64,{{ scatter2 }}" width="600">
+<div class="card">
+    {{ scatter2 | safe }}
+</div>
 
-<br><br>
-<a href="/">Back</a>
+<br>
+<a href="/">⬅ Back</a>
 
 </body>
 </html>
