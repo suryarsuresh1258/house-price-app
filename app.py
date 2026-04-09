@@ -122,25 +122,22 @@ def dashboard():
     if request.method == 'POST':
         bedrooms = int(request.form.get('bedrooms', 5))
 
-    df = pd.DataFrame({
-        'Bedrooms': list(range(1, bedrooms+1)),
-        'Price': [i * 100000 for i in range(1, bedrooms+1)]
-    })
+    # Sample data
+    import random
 
-    plt.figure()
-    plt.bar(df['Bedrooms'], df['Price'])
-    plt.xlabel('Bedrooms')
-    plt.ylabel('Price')
-    plt.title('Price vs Bedrooms')
+    bedroom_list = list(range(1, bedrooms + 1))
+    price_list = [i * random.randint(80000, 150000) for i in bedroom_list]
 
-    img = io.BytesIO()
-    plt.savefig(img, format='png')
-    img.seek(0)
+    graph_data = {
+        "bedrooms": bedroom_list,
+        "prices": price_list
+    }
 
-    graph_url = base64.b64encode(img.getvalue()).decode()
-    plt.close()
-
-    return render_template("dashboard.html", graph_url=graph_url, bedrooms=bedrooms)
+    return render_template(
+        "dashboard.html",
+        graph_data=graph_data,
+        bedrooms=bedrooms
+    )
 
 
 if __name__ == "__main__":
